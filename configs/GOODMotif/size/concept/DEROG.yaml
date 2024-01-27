@@ -1,0 +1,46 @@
+includes:
+  - base.yaml
+random_seed: 110
+pipeline: EMPipeline
+model:
+  model_name: DEROGGNN
+  num_layer: 5
+  gnn_kernel: vGIN
+  gnn_kernel_1: vGIN
+  gnn_kernel_2: vGIN
+  gnn_kernel_3: vGIN
+  gnn_kernel_4: vGIN
+  bond_encoder_conv: True
+  fuse_node_at: both # first, last
+  relu_out_e: True
+  grl_env: True
+  grl_inv: False
+  augment_inv: True
+  augment_tau: 0.1
+ood:
+  ood_alg: DEROG
+  ood_param: 1.0
+  decay_interval: 50
+  env_prior: con_gau # dis_gau, con_gau, uniform, param
+  inv_prior: con_gau # dis_gau, con_gau, uniform, param
+  kl_type: entropy
+  weight_kl_env: 0.01
+  weight_kl_inv: 0.01
+  e_out: entropy
+  weight_e_out: 0.1
+  env_f: 0.1
+  inv_f: 0.1
+  env_align: True
+  env_align_weight: 0.01
+  weight_cl: 0.1
+  neg_sample: 2
+train:
+  max_epoch: 200
+  lr: 0.0001
+  mile_stones:
+    - 300
+  alpha: 1
+  pre_train: 0
+  weight_decay: 0.0001
+log_file: exp_0
+clean_save: true

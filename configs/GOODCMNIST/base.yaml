@@ -1,0 +1,11 @@
+includes:
+  - ../base.yaml
+dataset:
+  y_classes: 10
+  dataset_name: GOODCMNIST
+model:
+  model_layer: 5
+  global_pool: mean
+  out_shape: 10
+train:
+  num_steps: 10

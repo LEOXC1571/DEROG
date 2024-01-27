@@ -1,0 +1,13 @@
+includes:
+  - ../base.yaml
+random_seed: 42
+dataset:
+  dataset_name: GOODHIV
+  domain: scaffold
+  y_classes: 2
+train:
+  max_epoch: 200
+  train_bs: 32
+  val_bs: 256
+  test_bs: 256
+  weight_decay: 0.

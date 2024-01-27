@@ -1,0 +1,10 @@
+includes:
+  - ../base.yaml
+model:
+  model_layer: 3
+  global_pool: mean
+  y_classes: 2
+  out_shape: 1
+train:
+  num_steps: 10
+  mile_stones: [150]

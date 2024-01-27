@@ -1,0 +1,12 @@
+includes:
+  - ../base.yaml
+dataset:
+  y_classes: 3
+  dataset_name: GOODTWITTER
+model:
+  model_layer: 3
+  global_pool: mean
+  out_shape: 3
+train:
+  num_steps: 10
+  mile_stones: [150]

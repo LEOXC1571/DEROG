@@ -1,0 +1,8 @@
+includes:
+  - ../base.yaml
+model:
+  model_layer: 3
+  global_pool: mean
+  out_shape: 3
+train:
+  num_steps: 10
