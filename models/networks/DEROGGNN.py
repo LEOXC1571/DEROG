@@ -84,14 +84,13 @@ class EnvGenerator(nn.Module):
         if not self.grl_env:
             graph_repr = self.feat_extractor(*args, **kwargs)
             y = kwargs.get('y_pred')
-            graph_repr = torch.sigmoid(self.label_fuser(torch.cat([graph_repr, y], dim=-1)))
+            graph_repr = self.label_fuser(torch.cat([graph_repr, y], dim=-1))
         else:
             node_repr = self.feat_extractor.get_node_repr(*args, **kwargs)
             y = kwargs.get('y_pred')
             node_repr = GradientReverseLayerF.apply(node_repr, self.alpha)
             graph_repr = self.feat_extractor.encoder.readout(node_repr, kwargs['data'].batch)
-            graph_repr = torch.sigmoid(self.label_fuser(torch.cat([graph_repr, y], dim=-1)))
-        return graph_repr
+            graph_repr = self.label_fuser(torch.cat([graph_repr, y], dim=-1))
 
 
 class GraphRationaleExtractor(nn.Module):

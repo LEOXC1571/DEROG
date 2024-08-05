@@ -118,53 +118,27 @@ class DEROG(BaseOODAlg):
         single_node_score = dense_score.sum(dim=-1)
         sort_score, indice = single_node_score.sort(descending=True, dim=1)
         num_nodes = mask.sum(-1)
-        pos_rand, neg_rand = random.uniform(0, 0.5), random.uniform(0.5, 1)
-        pos_spl1, pos_spl2 = (pos_rand * num_nodes).ceil().long(), (pos_rand * num_nodes).floor().long()
-        if neg_sample == 2:
-            neg_spl1, neg_spl2 = (neg_rand * num_nodes).ceil().long(), (neg_rand * num_nodes).floor().long()
-            if (neg_spl1 > num_nodes-1).sum() > 0:
-                neg_spl1, neg_spl2 = neg_spl1 - 1, neg_spl2 - 1
-
-
-            batch_idx = torch.tensor(range(mask.size(0)))
-            pos_idx1, pos_idx2 = indice[batch_idx, pos_spl1], indice[batch_idx, pos_spl2]
-            neg_idx1, neg_idx2 = indice[batch_idx, neg_spl1], indice[batch_idx, neg_spl2]
-
-            pos_score1, pos_score2 = dense_score[batch_idx, pos_idx1], dense_score[batch_idx, pos_idx2]
-            neg_score1, neg_score2 = dense_score[batch_idx, neg_idx1], dense_score[batch_idx, neg_idx2]
-
-            pos_score1, pos_score2 = F.normalize(pos_score1, dim=1), F.normalize(pos_score2, dim=1)
-            neg_score1, neg_score2 = F.normalize(neg_score1, dim=1), F.normalize(neg_score2, dim=1)
-            v1 = (pos_score1 * pos_score2).sum(1)
-            v1 = torch.exp(v1 / config['model']['augment_tau'])
-            v2 = (pos_score1 * neg_score1).sum(1)
-            v2 = v2 + (pos_score1 * neg_score2).sum(1)
-            v2 = torch.exp(v2 / config['model']['augment_tau'])
-            loss = -torch.sum(torch.log(v1 / v2)) / mask.sum()
+        num_nodes_ls = list(range(num_nodes))
+        anchor_half = random.choice(num_nodes_ls)
+        if anchor_half >= 0.5:
+            pos_rand_idx, neg_rand_idx = random.sample(num_nodes_ls[num_nodes//2:], 2), random.sample(num_nodes_ls[:num_nodes//2], neg_sample)
         else:
-            mid = (0.5 * num_nodes).floor().long()
-            neg_score_ls = []
-            for idx in range(len(num_nodes)):
-                if mid[idx] >= neg_sample:
-                    index = torch.LongTensor(random.sample(range(mid[idx], num_nodes[idx]), neg_sample)).to(dense_score.device)
-                else:
-                    index = torch.LongTensor(np.random.choice(range(mid[idx], num_nodes[idx]), neg_sample)).to(dense_score.device)
-                neg_score = torch.index_select(dense_score[idx, :, :].unsqueeze(0), 1, index)
-                neg_score_ls.append(neg_score)
-            neg_score = torch.cat(neg_score_ls)
+            neg_rand_idx, pos_rand_idx = random.sample(num_nodes_ls[num_nodes//2:], neg_sample), random.sample(num_nodes_ls[:num_nodes//2], 2)
+        batch_idx = torch.tensor(range(mask.size(0)))
+        pos_idx1, pos_idx2 = indice[batch_idx, pos_rand_idx[0]], indice[batch_idx, pos_rand_idx[1]]
+        pos_score1, pos_score2 = dense_score[batch_idx, pos_idx1], dense_score[batch_idx, pos_idx2]
+        pos_score1, pos_score2 = F.normalize(pos_score1, dim=1), F.normalize(pos_score2, dim=1)
+        neg_score_ls = []
+        for i in range(neg_sample):
+            neg_idx = indice[batch_idx, neg_rand_idx[i]]
+            neg_score_ls.append(dense_score[batch_idx, neg_idx])
+        neg_score = F.normalize(torch.cat(neg_score_ls), dim=2)
 
-            batch_idx = torch.tensor(range(mask.size(0)))
-            pos_idx1, pos_idx2 = indice[batch_idx, pos_spl1], indice[batch_idx, pos_spl2]
-            pos_score1, pos_score2 = dense_score[batch_idx, pos_idx1], dense_score[batch_idx, pos_idx2]
-            pos_score1, pos_score2 = F.normalize(pos_score1, dim=1), F.normalize(pos_score2, dim=1)
-            neg_score = F.normalize(neg_score, dim=2)
-
-            v1 = (pos_score1 * pos_score2).sum(1)
-            v1 = torch.exp(v1 / config['model']['augment_tau'])
-            v2 = (pos_score1.unsqueeze(1) * neg_score).sum(1).sum(1)
-            v2 = torch.exp(v2 / config['model']['augment_tau'])
-            loss = -torch.sum(torch.log(v1 / v2)) / mask.sum()
-
+        v1 = (pos_score1 * pos_score2).sum(1)
+        v1 = torch.exp(v1 / config['model']['augment_tau'])
+        v2 = (pos_score1.unsqueeze(1) * neg_score).sum(1).sum(1)
+        v2 = torch.exp(v2 / config['model']['augment_tau'])
+        loss = -torch.sum(torch.log(v1 / v2)) / mask.sum()
         return loss
 
 
