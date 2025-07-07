@@ -1,6 +1,6 @@
 # Improving Graph Out-of-distribution Generalization Beyond Causality
 
-This repository is the official implementation of our paper： **Improving Graph Out-of-distribution Generalization Beyond Causality**。
+This repository is the official implementation of our paper： **Improving Graph Out-of-distribution Generalization Beyond Causality**.
 
 ![overall_framework.png](models/overall_framework.png)
 
